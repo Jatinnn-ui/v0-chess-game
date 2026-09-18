@@ -17,7 +17,7 @@ export interface Settings {
 }
 
 const DEFAULTS: Settings = {
-  themeId: "classic",
+  themeId: "lavender",
   soundEnabled: true,
   showCoordinates: true,
   showLegalMoves: true,
