@@ -18,6 +18,19 @@ export interface BoardTheme {
 }
 
 export const BOARD_THEMES: Record<string, BoardTheme> = {
+  lavender: {
+    id: "lavender",
+    name: "Lavender",
+    hint: "Ivory & Lilac",
+    light: "#e9e0ef",
+    dark: "#a393b9",
+    surface: "#d6c8e3",
+    coords: "#7d6b90",
+    legalDot: "rgba(115, 85, 184, 0.45)",
+    moveHighlight: "rgba(160, 135, 201, 0.5)",
+    checkGlow: "#dc8b91",
+    boardInk: "rgba(115, 85, 184, 0.85)",
+  },
   classic: {
     id: "classic",
     name: "Classic",
