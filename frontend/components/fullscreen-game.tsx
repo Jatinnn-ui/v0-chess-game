@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { useSettings } from "@/hooks/use-settings"
-import type { HintMove, MoveRecord } from "@/hooks/use-chess-game"
+import type { GameStatus, HintMove, MoveRecord } from "@/hooks/use-chess-game"
 import type { Difficulty } from "@/lib/api"
 import { themeCssVars } from "@/lib/themes"
 
@@ -48,7 +48,7 @@ interface FullscreenGameProps {
   lastMove: { from: Square; to: Square } | null
   hint: HintMove | null
   gameOver: boolean
-  status: string
+  status: GameStatus
   onMove: (
     from: Square,
     to: Square,
