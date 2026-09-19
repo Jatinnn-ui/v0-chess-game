@@ -20,6 +20,8 @@ function profile(type: PieceSymbol) {
 function Piece({ type, color, selected }: { type: PieceSymbol; color: "w" | "b"; selected: boolean }) {
   const { settings } = useSettings()
   const group = useRef<THREE.Group>(null)
+  const invalidate = useThree(state => state.invalidate)
+  useEffect(() => { invalidate() }, [selected, settings.animationsEnabled, invalidate])
   const points = useMemo(() => profile(type), [type])
   const material = useMemo(() => new THREE.MeshStandardMaterial({ color: color === "w" ? "#fffaf0" : "#342b49", roughness: .27, metalness: .12 }), [color])
   const horse = useMemo(() => {
@@ -32,7 +34,11 @@ function Piece({ type, color, selected }: { type: PieceSymbol; color: "w" | "b";
   }, [])
   useEffect(() => () => material.dispose(), [material])
   useFrame((_, dt) => {
-    if (group.current) group.current.position.y = settings.animationsEnabled ? THREE.MathUtils.damp(group.current.position.y, selected ? .18 : 0, 12, dt) : selected ? .18 : 0
+    if (!group.current) return
+    const target = selected ? .18 : 0
+    const animate = settings.animationsEnabled && !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    group.current.position.y = animate ? THREE.MathUtils.damp(group.current.position.y, target, 12, dt) : target
+    if (Math.abs(group.current.position.y - target) > .001) invalidate()
   })
   return <group ref={group}>
     <mesh castShadow receiveShadow material={material}><latheGeometry args={[points, 40]} /></mesh>
@@ -129,11 +135,11 @@ export function ChessBoard3D(props: ChessBoardProps & { resetView?: number }) {
   if (!webgl) return fallback
   return <div className="three-board" style={{ cursor: hovered && props.interactive ? "pointer" : "default" }}>
     <BoardBoundary fallback={fallback}>
-      <Canvas shadows dpr={[1, 1.8]} orthographic camera={{ position: [4.4, 11.8, 15.8], zoom: 50, near: .1, far: 100 }} gl={{ antialias: true, alpha: true }} aria-label="Interactive 3D chessboard. Select a piece, then a highlighted square." onPointerMissed={() => setSelected(null)}>
+      <Canvas shadows frameloop="demand" dpr={[1, 1.5]} orthographic camera={{ position: [4.4, 11.8, 15.8], zoom: 50, near: .1, far: 100 }} gl={{ antialias: true, alpha: true }} aria-label="Interactive 3D chessboard. Select a piece, then a highlighted square." onPointerMissed={() => setSelected(null)}>
         <Camera reset={props.resetView ?? 0} />
         <ambientLight intensity={1.5} />
         <hemisphereLight args={["#ffffff", "#9981af", 1.2]} />
-        <directionalLight position={[-4, 10, 5]} intensity={3} castShadow shadow-mapSize={[2048, 2048]} shadow-camera-left={-7} shadow-camera-right={7} shadow-camera-top={7} shadow-camera-bottom={-7} shadow-normalBias={.035} shadow-bias={-.0001} />
+        <directionalLight position={[-4, 10, 5]} intensity={3} castShadow shadow-mapSize={[1024, 1024]} shadow-camera-left={-7} shadow-camera-right={7} shadow-camera-top={7} shadow-camera-bottom={-7} shadow-normalBias={.035} shadow-bias={-.0001} />
         <directionalLight position={[6, 6, -4]} intensity={1.5} color="#e3d5ff" />
         <group rotation={[0, props.orientation === "b" ? Math.PI : 0, 0]}>
           <RoundedBox args={[8.85, .32, 8.85]} radius={.12} smoothness={4} position={[0, -.19, 0]} castShadow receiveShadow><meshStandardMaterial color={theme.surface} roughness={.5} /></RoundedBox>
