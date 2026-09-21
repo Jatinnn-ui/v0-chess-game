@@ -18,6 +18,19 @@ export interface BoardTheme {
 }
 
 export const BOARD_THEMES: Record<string, BoardTheme> = {
+  nightfall: {
+    id: "nightfall",
+    name: "Nightfall",
+    hint: "Amethyst & Obsidian",
+    light: "#a294b0",
+    dark: "#51425e",
+    surface: "#302636",
+    coords: "#c6aad6",
+    legalDot: "rgba(219, 180, 255, 0.65)",
+    moveHighlight: "rgba(188, 143, 230, 0.5)",
+    checkGlow: "#dc7689",
+    boardInk: "rgba(206, 160, 255, 0.9)",
+  },
   lavender: {
     id: "lavender",
     name: "Lavender",
