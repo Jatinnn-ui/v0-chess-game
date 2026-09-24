@@ -23,7 +23,7 @@ function Piece({ type, color, selected }: { type: PieceSymbol; color: "w" | "b";
   const invalidate = useThree(state => state.invalidate)
   useEffect(() => { invalidate() }, [selected, settings.animationsEnabled, invalidate])
   const points = useMemo(() => profile(type), [type])
-  const material = useMemo(() => new THREE.MeshStandardMaterial({ color: color === "w" ? "#fffaf0" : "#342b49", roughness: .27, metalness: .12 }), [color])
+  const material = useMemo(() => new THREE.MeshStandardMaterial({ color: color === "w" ? "#eee0c9" : "#302039", roughness: .24, metalness: .22 }), [color])
   const horse = useMemo(() => {
     const s = new THREE.Shape()
     s.moveTo(-.22, 0); s.lineTo(.22, 0); s.bezierCurveTo(.18, .28, .07, .40, .16, .55)
@@ -70,13 +70,14 @@ function Piece({ type, color, selected }: { type: PieceSymbol; color: "w" | "b";
 }
 
 function Coordinate({ text, position, rotate = false }: { text: string; position: [number, number, number]; rotate?: boolean }) {
+  const { theme } = useSettings()
   const texture = useMemo(() => {
     const canvas = document.createElement("canvas")
     canvas.width = 64; canvas.height = 64
     const ctx = canvas.getContext("2d")!
-    ctx.font = "500 38px Arial"; ctx.fillStyle = "#7b718c"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(text, 32, 32)
+    ctx.font = "500 38px Arial"; ctx.fillStyle = theme.coords; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(text, 32, 32)
     return new THREE.CanvasTexture(canvas)
-  }, [text])
+  }, [text, theme.coords])
   useEffect(() => () => texture.dispose(), [texture])
   return <mesh position={position} rotation={[-Math.PI / 2, 0, rotate ? Math.PI : 0]}><planeGeometry args={[.25, .25]} /><meshBasicMaterial map={texture} transparent depthWrite={false} /></mesh>
 }
@@ -87,7 +88,7 @@ function Camera({ reset }: { reset: number }) {
     const cam = camera as THREE.OrthographicCamera
     cam.position.set(4.4, 11.8, 15.8)
     cam.lookAt(0, 0, 0)
-    cam.zoom = Math.min(size.width / 11.8, size.height / 9.8)
+    cam.zoom = Math.min(size.width / 10.9, size.height / 8.9)
     cam.updateProjectionMatrix()
     invalidate()
   }, [camera, size, reset, invalidate])
@@ -133,17 +134,18 @@ export function ChessBoard3D(props: ChessBoardProps & { resetView?: number }) {
   })
   const fallback = <div className="board-fallback"><p>3D is unavailable on this device. Enjoy the 2D board.</p><ChessBoard {...props} /></div>
   if (!webgl) return fallback
-  return <div className="three-board" style={{ cursor: hovered && props.interactive ? "pointer" : "default" }}>
+  return <div className="three-board" onContextMenu={event => event.preventDefault()} style={{ cursor: hovered && props.interactive ? "pointer" : "default" }}>
     <BoardBoundary fallback={fallback}>
       <Canvas shadows frameloop="demand" dpr={[1, 1.5]} orthographic camera={{ position: [4.4, 11.8, 15.8], zoom: 50, near: .1, far: 100 }} gl={{ antialias: true, alpha: true }} aria-label="Interactive 3D chessboard. Select a piece, then a highlighted square." onPointerMissed={() => setSelected(null)}>
         <Camera reset={props.resetView ?? 0} />
-        <ambientLight intensity={1.5} />
-        <hemisphereLight args={["#ffffff", "#9981af", 1.2]} />
-        <directionalLight position={[-4, 10, 5]} intensity={3} castShadow shadow-mapSize={[1024, 1024]} shadow-camera-left={-7} shadow-camera-right={7} shadow-camera-top={7} shadow-camera-bottom={-7} shadow-normalBias={.035} shadow-bias={-.0001} />
-        <directionalLight position={[6, 6, -4]} intensity={1.5} color="#e3d5ff" />
+        <ambientLight intensity={.8} />
+        <hemisphereLight args={["#eedcff", "#201327", .9]} />
+        <directionalLight position={[-4, 10, 5]} color="#fff0d6" intensity={3.4} castShadow shadow-mapSize={[1024, 1024]} shadow-camera-left={-7} shadow-camera-right={7} shadow-camera-top={7} shadow-camera-bottom={-7} shadow-normalBias={.035} shadow-bias={-.0001} />
+        <directionalLight position={[6, 6, -4]} intensity={4} color="#c49af5" />
+        <directionalLight position={[-5, 3, -6]} intensity={1.8} color="#c9b7fa" />
         <group rotation={[0, props.orientation === "b" ? Math.PI : 0, 0]}>
           <RoundedBox args={[8.85, .32, 8.85]} radius={.12} smoothness={4} position={[0, -.19, 0]} castShadow receiveShadow><meshStandardMaterial color={theme.surface} roughness={.5} /></RoundedBox>
-          <RoundedBox args={[8.92, .10, 8.92]} radius={.06} smoothness={3} position={[0, -.36, 0]} castShadow><meshStandardMaterial color="#736182" metalness={.3} roughness={.4} /></RoundedBox>
+          <RoundedBox args={[8.92, .10, 8.92]} radius={.06} smoothness={3} position={[0, -.36, 0]} castShadow><meshStandardMaterial color="#9c799f" metalness={.65} roughness={.25} /></RoundedBox>
           {squares.map(({ square, file, row, piece }) => {
             const target = legal.some(m => m.to === square)
             const isCheck = piece?.type === "k" && piece.color === chess.turn() && chess.isCheck()
@@ -154,7 +156,7 @@ export function ChessBoard3D(props: ChessBoardProps & { resetView?: number }) {
             return <group key={square} position={[file - 3.5, 0, row - 3.5]} onClick={e => { e.stopPropagation(); clickSquare(square) }} onPointerOver={e => { e.stopPropagation(); setHovered(square) }} onPointerOut={() => setHovered(null)}>
               <mesh receiveShadow position={[0, -.012, 0]}><boxGeometry args={[1, .045, 1]} /><meshStandardMaterial color={color} roughness={.65} /></mesh>
               {piece && <group position={[0, .02, 0]}><Piece type={piece.type} color={piece.color} selected={active} /></group>}
-              {target && settings.showLegalMoves && <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, .027, 0]}><ringGeometry args={piece ? [.36, .43, 40] : [0, .12, 32]} /><meshBasicMaterial color="#7355b8" transparent opacity={.65} /></mesh>}
+              {target && settings.showLegalMoves && <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, .027, 0]}><ringGeometry args={piece ? [.36, .43, 40] : [0, .12, 32]} /><meshBasicMaterial color="#e1b6ff" transparent opacity={.8} /></mesh>}
             </group>
           })}
           {settings.showCoordinates && Array.from({ length: 8 }, (_, i) => <group key={i}>
@@ -164,7 +166,7 @@ export function ChessBoard3D(props: ChessBoardProps & { resetView?: number }) {
             <Coordinate text={String(8 - i)} position={[4.22, -.02, i - 3.5]} rotate />
           </group>)}
         </group>
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -.44, 0]} receiveShadow><planeGeometry args={[200, 200]} /><shadowMaterial transparent opacity={.13} /></mesh>
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -.44, 0]} receiveShadow><planeGeometry args={[200, 200]} /><shadowMaterial transparent opacity={.4} /></mesh>
         <OrbitControls key={props.resetView} enablePan={false} enableZoom={false} minPolarAngle={.15} maxPolarAngle={Math.PI / 2.7} mouseButtons={{ LEFT: undefined, MIDDLE: undefined, RIGHT: THREE.MOUSE.ROTATE }} touches={{ ONE: undefined, TWO: THREE.TOUCH.ROTATE }} />
       </Canvas>
     </BoardBoundary>
