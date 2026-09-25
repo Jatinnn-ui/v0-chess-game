@@ -17,7 +17,7 @@ export interface Settings {
 }
 
 const DEFAULTS: Settings = {
-  themeId: "classic",
+  themeId: "nightfall",
   soundEnabled: true,
   showCoordinates: true,
   showLegalMoves: true,

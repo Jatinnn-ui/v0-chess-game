@@ -9,6 +9,12 @@ __v0_jsx-dev-runtime.ts
 # Environment variables
 .env*.local
 
+# Local development and visual testing
+.npm-cache/
+.venv/
+.tools/
+.artifacts/
+
 # Common ignores
 node_modules
 .next/
